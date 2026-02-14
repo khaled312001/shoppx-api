@@ -1,5 +1,6 @@
 
 import express from "express";
+import cors from "cors";
 import logger from "morgan";
 import { connectMainDatabase } from "./database";
 import { router } from "./router";
@@ -14,11 +15,33 @@ const app = express();
 
 connectMainDatabase();
 
+app.use(
+  cors({
+    origin: [
+      "https://www.mossodor.com",
+      "https://mossodor.com",
+      "http://localhost:3000",
+    ],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "x-connection-key",
+      "x-connection-from",
+    ],
+  })
+);
 
 app.use(logger("dev"));
 
 app.get("/", (req, res) => {
-  res.send("Shoppx API is running successfully. 🚀");
+  res.json({
+    message: "Shoppx API is running successfully 🚀",
+    version: "v1",
+    health: "/health",
+    api: "/api/v1",
+  });
 });
 
 app.get("/health", (req, res) => {
