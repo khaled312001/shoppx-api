@@ -1,0 +1,23 @@
+services:
+  shoppex:
+    build:
+      context: .
+    environment:
+      DATABASE_SERVER_HOST: ${DATABASE_SERVER_HOST}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_USER: ${DB_USER}
+      PORT: 9400
+      ORIGIN: ${ORIGIN}
+      JWT_SECRET: ${JWT_SECRET}
+      SELRO_API_KEY: ${SELRO_API_KEY}
+      SELRO_API_SECRET: ${SELRO_API_SECRET}
+      SELRO_API_ENDPOINT: https://app6.selro.com/api
+      SELRO_CREDENTIALS_PARAMS: secret=${SELRO_API_SECRET}&key=${SELRO_API_KEY}
+      NODE_ENV: production
+      SERVER_DOMAIN: http://localhost:9400
+      DOMAIN: ${DOMAIN}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_ENDPOINT_SECRET: ${STRIPE_ENDPOINT_SECRET}
+
+    ports:
+      - 9400:9400

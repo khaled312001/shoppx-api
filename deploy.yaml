@@ -1,0 +1,41 @@
+name: Deploy Shoppex
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Add SSH key
+        run: |
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" >> private_key && chmod 600 private_key
+          ssh-agent bash -c 'ssh-add private_key; ssh-keyscan ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts'
+          rm private_key
+
+      - name: Connect to server
+        env:
+          SERVER_IP: ${{ secrets.SERVER_IP }}
+        run: ssh vitaheal@${{ env.SERVER_IP }}
+
+      - name: Activate virtual environment and navigate to directory
+        run: |
+          source /home/vitaheal/nodevenv/domains/xappee.vitaheal.co.uk/20/bin/activate
+          cd /home/vitaheal/domains/xappee.vitaheal.co.uk
+          trap 'deactivate' EXIT  # Deactivate virtual environment on exit
+
+      - name: Update code
+        run: git fetch --depth=1 origin main && git reset --hard origin/main
+
+      - name: Install dependencies
+        run: npm ci  # Use npm ci for consistent dependencies
+
+      - name: Build the application
+        run: npm run build
+
+      - name: Restart the server
+        run: sudo systemctl restart my_service_name  # Replace with actual service name
