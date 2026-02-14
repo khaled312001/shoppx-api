@@ -14,9 +14,16 @@ export const makeMongoURI = (database: string) => {
   const databaseUser = process.env.DB_USER;
   const databasePassword = process.env.DB_PASSWORD;
   const encodedPassword = encodeURIComponent(databasePassword || "");
-  return process.env.NODE_ENV === "production"
-    ? `mongodb+srv://xappeesoftware:LMph7vvVk1gvgSMU@shopx.3qvsp5z.mongodb.net/${database}`
-    : `mongodb://localhost:27017/${database}`;
+
+  if (process.env.NODE_ENV === "production") {
+    if (!databaseHost || !databaseUser || !databasePassword) {
+      console.warn("Missing database environment variables in production. Falling back to hardcoded URI for backward compatibility.");
+      return `mongodb+srv://xappeesoftware:LMph7vvVk1gvgSMU@shopx.3qvsp5z.mongodb.net/${database}`;
+    }
+    return `mongodb+srv://${databaseUser}:${encodedPassword}@${databaseHost}/${database ? database : ''}?retryWrites=true&w=majority`;
+  }
+
+  return `mongodb://localhost:27017/${database}`;
 };
 
 const checkThatTenantIsRegistered = async (connectionKey: string) => {
