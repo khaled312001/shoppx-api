@@ -14,12 +14,22 @@ const app = express();
 
 connectMainDatabase();
 
+
 app.use(logger("dev"));
-app.use(errorhandler());
+
+app.get("/", (req, res) => {
+  res.send("Shoppx API is running successfully. 🚀");
+});
+
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+});
 
 app.use("/api/v1/stripe", stripeRouter);
 app.use("/api/v1/auth", authRouter);
 app.use(express.json()); // Must be after stripe router. Otherwise, stripe webhooks won't work
 app.use("/api/v1", bindConnectionKey, router);
+
+app.use(errorhandler());
 
 export default app;
