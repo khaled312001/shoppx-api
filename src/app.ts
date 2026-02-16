@@ -13,8 +13,8 @@ require("dotenv").config();
 
 const app = express();
 
-// Await DB connection - critical for serverless where connection must be ready before handling requests
-connectMainDatabase().catch((err: any) => {
+// Store the DB connection promise so requests can wait for it
+const dbReady = connectMainDatabase().catch((err: any) => {
   console.error("Initial database connection failed:", err.message);
 });
 
@@ -35,6 +35,7 @@ app.use(
     ],
   })
 );
+  
 
 app.use(logger("dev"));
 
@@ -54,7 +55,12 @@ app.get("/health", (req, res) => {
 app.use("/api/v1/stripe", stripeRouter);
 app.use("/api/v1/auth", authRouter);
 app.use(express.json()); // Must be after stripe router. Otherwise, stripe webhooks won't work
-app.use("/api/v1", bindConnectionKey, router);
+
+// Wait for DB connection before processing any API requests (fixes Vercel cold start race condition)
+app.use("/api/v1", async (req, res, next) => {
+  await dbReady;
+  next();
+}, bindConnectionKey, router);
 
 app.use(errorhandler());
 
