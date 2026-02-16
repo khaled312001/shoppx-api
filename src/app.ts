@@ -52,31 +52,6 @@ app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-// TEMPORARY DEBUG ENDPOINT - Remove after debugging
-app.get("/debug", async (req, res) => {
-  const mongoose = require("mongoose");
-  const { connectionPool } = require("./database");
-  try {
-    await dbReady;
-    const superConn = connectionPool["super"];
-    let tenants: any[] = [];
-    if (superConn) {
-      const { tenantSchema } = require("./modules/super/submodules/tenants/Tenant/tenant.schema");
-      tenants = await superConn.model("Tenant", tenantSchema).find({}).select("name status origin").lean().exec();
-    }
-    res.json({
-      nodeEnv: process.env.NODE_ENV,
-      dbHost: process.env.DATABASE_SERVER_HOST || "NOT SET (using fallback)",
-      mongooseState: mongoose.connection.readyState,
-      superConnExists: !!superConn,
-      poolKeys: Object.keys(connectionPool),
-      tenants: tenants,
-    });
-  } catch (err: any) {
-    res.status(500).json({ error: err.message, stack: err.stack });
-  }
-});
-
 app.use("/api/v1/stripe", stripeRouter);
 app.use("/api/v1/auth", authRouter);
 app.use(express.json()); // Must be after stripe router. Otherwise, stripe webhooks won't work
