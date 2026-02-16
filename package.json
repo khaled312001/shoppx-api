@@ -9,6 +9,7 @@
     "email": "email dev",
     "start": "node dist/server.js",
     "build": "tsc",
+    "vercel-build": "tsc",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "proxy": "http://localhost:8001",

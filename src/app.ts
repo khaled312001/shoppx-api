@@ -13,7 +13,10 @@ require("dotenv").config();
 
 const app = express();
 
-connectMainDatabase();
+// Await DB connection - critical for serverless where connection must be ready before handling requests
+connectMainDatabase().catch((err: any) => {
+  console.error("Initial database connection failed:", err.message);
+});
 
 app.use(
   cors({

@@ -51,15 +51,13 @@ export const newDatabaseConnection = async (connectionKey: string) => {
 
   if (!uri) throw new Error("Tenant not found");
   var mongooseConnection = new Mongoose();
-  await mongooseConnection
-    .connect(uri)
-    .then((_) => {
-      connectionPool[connectionKey] = mongooseConnection;
-    })
-    .catch((error: any) => {
-      console.log(`Error: ${error}. For: ${connectionKey}`);
-      newDatabaseConnection(connectionKey);
-    });
+  try {
+    await mongooseConnection.connect(uri);
+    connectionPool[connectionKey] = mongooseConnection;
+  } catch (error: any) {
+    console.error(`Database connection error for tenant "${connectionKey}":`, error.message);
+    throw error; // Let the request fail with 500 instead of retrying forever
+  }
 };
 
 export const getTenantConnection = async (connectionKey: string) => {

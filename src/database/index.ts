@@ -6,22 +6,32 @@ config();
 export type Connection = typeof import("mongoose");
 const connectionPool: any = {};
 
-const connectMainDatabase = () => {
+let isConnecting = false;
+
+const connectMainDatabase = async () => {
+  // Already connected — reuse across warm serverless invocations
+  if (mongoose.connection.readyState === 1) {
+    return;
+  }
+
+  // Avoid duplicate connection attempts during cold start
+  if (isConnecting) {
+    return;
+  }
+
+  isConnecting = true;
   const mainDatabaseURI = makeMongoURI("super");
 
-  mongoose
-    .connect(mainDatabaseURI, {})
-    .then((conn) => {
-      connectionPool["super"] = conn;
-      console.log(`Super Database Connected At: ${mainDatabaseURI}`);
-    })
-    .catch((e: any) => {
-      console.error(
-        "Failed to connect to MongoDB. Retrying in 5 seconds...",
-        e
-      );
-      setTimeout(connectMainDatabase, 5000);
-    });
+  try {
+    const conn = await mongoose.connect(mainDatabaseURI, {});
+    connectionPool["super"] = conn;
+    console.log(`Super Database Connected At: ${mainDatabaseURI}`);
+  } catch (e: any) {
+    console.error("Failed to connect to MongoDB:", e.message);
+    throw e; // Let serverless function return 500 instead of retrying forever
+  } finally {
+    isConnecting = false;
+  }
 };
 
 export { connectMainDatabase, connectionPool };

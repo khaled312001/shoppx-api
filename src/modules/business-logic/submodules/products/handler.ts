@@ -1,4 +1,4 @@
-import { CategoryRepository } from "./../categories/Category/category.repository";
+import { CategoryRepository } from "../categories/Category/category.repository";
 import { query, Response } from "express";
 import { ProductsRepository } from "./Product/product.repository";
 import { ProductSchema } from "./Product/product.schema";
